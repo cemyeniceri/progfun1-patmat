@@ -2,6 +2,8 @@ package patmat
 
 import common._
 
+import scala.annotation.tailrec
+
 /**
  * Assignment 4: Huffman coding
  *
@@ -18,6 +20,8 @@ object Huffman {
 
     val timesRes = times(List('c','a','a','b','b','b','d','d','d','d','e','e','e'))
     println("timesRes : " + timesRes)
+
+    println("decodedSecret : " + decodedSecret)
   }
   /**
    * A huffman code is represented by a binary tree.
@@ -136,11 +140,9 @@ object Huffman {
       trees
     else{
       val x = makeCodeTree(trees.head,trees.tail.head)
-      combine((trees.tail.tail :+ x).sortBy{f=>
-        f match {
-          case Leaf(char, weight) => weight
-          case Fork(left, right, chars, weight) => weight
-        }
+      combine(trees = (trees.tail.tail :+ x).sortBy {
+        case Leaf(char, weight) => weight
+        case Fork(left, right, chars, weight) => weight
       })
     }
   }
@@ -192,7 +194,17 @@ object Huffman {
    */
     def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
 
-
+    def decodeRec(treeRemain: CodeTree, bitList: List[Bit], charList: List[Char]): List[Char] = {
+      if(bitList.isEmpty){
+        charList
+      }else{
+        treeRemain match {
+            case Fork(left,right,chars,weight) => if (bitList.head==0) decodeRec(left, bitList.tail, charList) else decodeRec(right, bitList.tail, charList)
+            case Leaf(char,weight) => decodeRec(tree, bitList.tail, charList :+ char)
+          }
+      }
+    }
+    decodeRec(tree, bits, List())
   }
   
   /**
@@ -204,7 +216,7 @@ object Huffman {
 
   /**
    * What does the secret message say? Can you decode it?
-   * For the decoding use the `frenchCode' Huffman tree defined above.
+   * For the decoding use the 'frenchCode' Huffman tree defined above.
    */
   val secret: List[Bit] = List(0,0,1,1,1,0,1,0,1,1,1,0,0,1,1,0,1,0,0,1,1,0,1,0,1,1,0,0,1,1,1,1,1,0,1,0,1,1,0,0,0,0,1,0,1,1,1,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,1)
 

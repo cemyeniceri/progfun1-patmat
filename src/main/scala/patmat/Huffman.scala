@@ -2,8 +2,6 @@ package patmat
 
 import common._
 
-import scala.annotation.tailrec
-
 /**
  * Assignment 4: Huffman coding
  *
@@ -22,7 +20,11 @@ object Huffman {
     println("timesRes : " + timesRes)
 
     println("decodedSecret : " + decodedSecret)
+
+    println("combine1 : " + combine(List(Leaf('e', 1), Leaf('t', 2), Leaf('x', 4))))
+    println("Cem Yeniçeri : " + createCodeTree(string2Chars("CemYeniçeri")))
   }
+
   /**
    * A huffman code is represented by a binary tree.
    *
@@ -136,14 +138,11 @@ object Huffman {
    * unchanged.
    */
     def combine(trees: List[CodeTree]): List[CodeTree] = {
-    if(trees.length<=2)
+    if(trees.length < 2)
       trees
     else{
-      val x = makeCodeTree(trees.head,trees.tail.head)
-      combine(trees = (trees.tail.tail :+ x).sortBy {
-        case Leaf(char, weight) => weight
-        case Fork(left, right, chars, weight) => weight
-      })
+      val x = makeCodeTree(trees.head,trees(1))
+      trees.drop(2) :+ x sortBy(weight(_))
     }
   }
   
@@ -195,18 +194,16 @@ object Huffman {
     def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
 
     def decodeRec(treeRemain: CodeTree, bitList: List[Bit], charList: List[Char]): List[Char] = {
-      if(bitList.isEmpty){
-        charList
-      }else{
-        treeRemain match {
-            case Fork(left,right,chars,weight) => if (bitList.head==0) decodeRec(left, bitList.tail, charList) else decodeRec(right, bitList.tail, charList)
-            case Leaf(char,weight) => decodeRec(tree, bitList.tail, charList :+ char)
-          }
-      }
+      treeRemain match {
+        case Leaf(char,_) if bitList.isEmpty  => charList :+ char
+        case Leaf(char,_) => decodeRec(tree, bitList, charList :+ char)
+        case Fork(left,_,_,_) if bitList.head==0 =>  decodeRec(left, bitList.tail, charList)
+        case Fork(_,right,_,_) => decodeRec(right, bitList.tail, charList)
+        }
     }
     decodeRec(tree, bits, List())
   }
-  
+
   /**
    * A Huffman coding tree for the French language.
    * Generated from the data given at
@@ -224,7 +221,6 @@ object Huffman {
    * Write a function that returns the decoded secret
    */
     def decodedSecret: List[Char] = decode(frenchCode, secret)
-  
 
   // Part 4a: Encoding using Huffman tree
 
@@ -232,7 +228,28 @@ object Huffman {
    * This function encodes `text` using the code tree `tree`
    * into a sequence of bits.
    */
-    def encode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+    def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
+
+      def isContain(ch: Char, tree: CodeTree): Boolean = {
+        tree match {
+          case Fork(left,right,chars,weight) => chars.contains(ch)
+          case Leaf(char,weight) => char == ch
+        }
+      }
+
+      def encodeRec(treeRemain: CodeTree, encodedList: List[Bit], text: List[Char]): List[Bit] = {
+        if(text.isEmpty){
+          encodedList
+        }else{
+          treeRemain match {
+            case Fork(left, _, _, _) if chars(left).contains(text.head) =>  encodeRec(left, encodedList:+0, text)
+            case Fork(_, right, _, _) => encodeRec(right, encodedList:+1, text)
+            case Leaf(_, _)=> encodeRec(tree, encodedList, text.tail)
+          }
+        }
+      }
+      encodeRec(tree, List() ,text)
+  }
   
   // Part 4b: Encoding using code table
 

@@ -142,7 +142,7 @@ object Huffman {
       trees
     else{
       val x = makeCodeTree(trees.head,trees(1))
-      trees.drop(2) :+ x sortByweight
+      (trees.drop(2) :+ x).sortBy(weight)
     }
   }
   

@@ -12,6 +12,7 @@ class HuffmanSuite extends FunSuite {
 	trait TestTrees {
 		val t1 = Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5)
 		val t2 = Fork(Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5), Leaf('d',4), List('a','b','d'), 9)
+    val t3 = Fork(Fork(Leaf('a',2), Leaf('b',3), List('a','b'), 5), Leaf('d',4), List('a','b','d'), 9)
 	}
 
 
@@ -51,4 +52,9 @@ class HuffmanSuite extends FunSuite {
     }
   }
 
+  test("code table is created correctly") {
+    new TestTrees {
+      assert(convert(t3) === List(('a',List(0, 0)), ('b',List(0, 1)), ('d',List(1))))
+    }
+  }
 }
